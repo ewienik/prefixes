@@ -145,6 +145,16 @@ struct Prefixes::Opaque {
             return;
         }
         closest->added_ = false;
+        while (0 != closest->up_ && !closest->added_ && 0 == closest->true_ && 0 == closest->false_) {
+            BitIp * up = closest->up_;
+            if (up->true_ == closest) {
+                up->true_ = 0;
+            } else {
+                up->false_ = 0;
+            }
+            delete closest;
+            closest = up;
+        }
     }
 
     /**/

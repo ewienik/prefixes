@@ -46,6 +46,10 @@ struct Mem {
         char * ptr_char = static_cast<char *>(ptr);
         for (std::vector<char *>::const_iterator it = arrays_.begin(); it != arrays_.end(); it++) {
             if (*it <= ptr_char && *it + N * sizeof(T) > ptr_char) {
+                int offset = ptr_char - *it;
+                if (0 != offset % sizeof(T)) {
+                    return;
+                }
                 queue_.push((it - arrays_.begin()) * N + (ptr_char - *it) / sizeof(T));
                 return;
             }

@@ -2,12 +2,15 @@
 /**/
 
 #include "prefixes.hpp"
+#include "mem.hpp"
 
 /**/
 
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
+#include <cstdlib>
 
 /**/
 
@@ -58,6 +61,41 @@ namespace {
     }
 
     /**/
+
+    void TestMem() {
+        TestStarted(__FUNCTION__);
+
+        Mem<int, 2> mem;
+
+        int * first  = static_cast<int*>(mem.Malloc());
+        if (0 == first) {
+            cout << "FAILED: " << test_title << ": allocation of first int should be != NULL" << endl;
+        }
+        int * second = static_cast<int*>(mem.Malloc());
+        if (0 == second) {
+            cout << "FAILED: " << test_title << ": allocation of second int should be != NULL" << endl;
+        }
+
+        mem.Free(second);
+        int * third = static_cast<int*>(mem.Malloc());
+        if (0 == third) {
+            cout << "FAILED: " << test_title << ": allocation of third int should be != NULL" << endl;
+        }
+        if (third != second) {
+            cout << "FAILED: " << test_title << ": allocation of third int should be as second" << endl;
+        }
+
+        mem.Free(reinterpret_cast<char*>(second) + 1);
+        int * fourth = static_cast<int*>(mem.Malloc());
+        if (0 == fourth) {
+            cout << "FAILED: " << test_title << ": allocation of fourth int should be != NULL" << endl;
+        }
+        if (fourth == second) {
+            cout << "FAILED: " << test_title << ": allocation of fourth int should be != second" << endl;
+        }
+
+        TestFinished();
+    }
 
     void Test1() {
         TestStarted(__FUNCTION__);
@@ -117,29 +155,58 @@ namespace {
 
         Prefixes prefixes;
 
-        for (int i = 0; i < 100; i++) {
-            for (int j = 0; j < 100; j++) {
-                for (int k = 0; k < 10; k++) {
-                    for (int l = 0; l < 10; l++) {
-                        for (int m = 0; m < 33; m++) {
-                            prefixes.Add(Ip(i, j, k, l), m);
+        for (int t = 0; t < 10; t++) {
+            ostringstream ostr;
+            ostr << "Loop " << t << "...";
+            TestMessage(ostr.str());
+
+            for (int i = 0; i < 100; i++) {
+                for (int j = 0; j < 100; j++) {
+                    for (int k = t * 10; k < (t + 1) * 10; k++) {
+                        for (int l = t * 10; l < (t + 1) * 10; l++) {
+                            for (int m = 0; m < 33; m++) {
+                                prefixes.Add(Ip(i, j, k, l), m);
+                            }
                         }
                     }
                 }
             }
-        }
 
-        TestMessage("Testing...");
-
-        for (int i = 0; i < 100; i++) {
-            for (int j = 0; j < 100; j++) {
-                for (int k = 0; k < 10; k++) {
-                    for (int l = 0; l < 10; l++) {
-                        int ip = Ip(i, j, k, l);
-                        Test(prefixes, ip, 32);
+            for (int i = 0; i < 100; i++) {
+                for (int j = 0; j < 100; j++) {
+                    for (int k = t * 10; k < (t + 1) * 10; k++) {
+                        for (int l = t * 10; l < (t + 1) * 10; l++) {
+                            int ip = Ip(i, j, k, l);
+                            Test(prefixes, ip, 32);
+                        }
                     }
                 }
             }
+
+            for (int i = 0; i < 100; i++) {
+                for (int j = 0; j < 100; j++) {
+                    for (int k = t * 10; k < (t + 1) * 10; k++) {
+                        for (int l = t * 10; l < (t + 1) * 10; l++) {
+                            for (int m = 0; m < 33; m++) {
+                                prefixes.Del(Ip(i, j, k, l), m);
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < 100; i++) {
+                for (int j = 0; j < 100; j++) {
+                    for (int k = 0; k < 10; k++) {
+                        for (int l = 0; l < 10; l++) {
+                            int ip = Ip(i, j, k, l);
+                            Test(prefixes, ip, -1);
+                        }
+                    }
+                }
+            }
+
+
         }
 
         TestFinished();
@@ -152,6 +219,7 @@ namespace {
 /**/
 
 int main() {
+    TestMem();
     Test1();
     Test2();
 }
