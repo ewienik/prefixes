@@ -50,7 +50,7 @@ struct Mem {
                 if (0 != offset % sizeof(T)) {
                     return;
                 }
-                queue_.push((it - arrays_.begin()) * N + (ptr_char - *it) / sizeof(T));
+                queue_.push((it - arrays_.begin()) * N + offset / sizeof(T));
                 return;
             }
         }
