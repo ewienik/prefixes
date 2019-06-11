@@ -8,7 +8,6 @@ char const kMaskNotFound = -1;
 /**/
 
 struct Prefixes {
-
     /**/
 
     Prefixes();
@@ -22,17 +21,15 @@ struct Prefixes {
 
     /**/
 
-private:
-
+   private:
     /**/
 
     struct Opaque;
-    Opaque * opaque_;
+    Opaque* opaque_;
 
     /**/
-
 };
 
 /**/
 
-#endif // #ifndef PREFIXES_HPP
+#endif  // #ifndef PREFIXES_HPP

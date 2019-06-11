@@ -2,6 +2,7 @@
 /**/
 
 #include "prefixes.hpp"
+
 #include "mem.hpp"
 
 /**/
@@ -16,73 +17,67 @@ using namespace std;
 
 namespace {
 
+/**/
+
+size_t const kMemCount = 100000;
+
+/**/
+
+struct BitIp;
+Mem<BitIp, kMemCount> mem;
+
+/**/
+
+struct BitIp {
     /**/
 
-    size_t const kMemCount = 100000;
+    int bit_;
+    bool added_;
+    BitIp* up_;
+    BitIp* true_;
+    BitIp* false_;
 
     /**/
 
-    struct BitIp;
-    Mem<BitIp, kMemCount> mem;
+    BitIp(int bit, bool added, BitIp* up)
+        : bit_(bit), added_(added), up_(up), true_(0), false_(0) {}
 
     /**/
 
-    struct BitIp {
-
-        /**/
-
-        int     bit_;
-        bool    added_;
-        BitIp * up_;
-        BitIp * true_;
-        BitIp * false_;
-
-        /**/
-
-        BitIp(int bit, bool added, BitIp * up) : bit_(bit), added_(added), up_(up), true_(0), false_(0) { }
-
-        /**/
-
-        ~BitIp() {
-            if (0 != true_) {
-                delete true_;
-            }
-            if (0 != false_) {
-                delete false_;
-            }
+    ~BitIp() {
+        if (0 != true_) {
+            delete true_;
         }
-
-        /**/
-
-        static void * operator new(size_t count) {
-            return mem.Malloc();
+        if (0 != false_) {
+            delete false_;
         }
-
-        /**/
-
-        static void operator delete(void * ptr) {
-            mem.Free(ptr);
-        }
-
-        /**/
-
-    };
+    }
 
     /**/
 
-}
+    static void* operator new(size_t count) { return mem.Malloc(); }
+
+    /**/
+
+    static void operator delete(void* ptr) { mem.Free(ptr); }
+
+    /**/
+};
+
+/**/
+
+}  // namespace
 
 /**/
 
 struct Prefixes::Opaque {
+    /**/
+
+    BitIp* base_;
 
     /**/
 
-    BitIp * base_;
-
-    /**/
-
-    Opaque() : base_(new BitIp(32, false, 0)) { }
+    Opaque() : base_(new BitIp(32, false, 0)) {}
 
     /**/
 
@@ -105,8 +100,8 @@ struct Prefixes::Opaque {
 
     /**/
 
-    BitIp * Closest(int ip, int bit_min) {
-        BitIp * bit_ip = base_;
+    BitIp* Closest(int ip, int bit_min) {
+        BitIp* bit_ip = base_;
         for (int bit = 31; bit >= bit_min; bit--) {
             if (0 == (ip & (1 << bit))) {
                 if (0 == bit_ip->false_) {
@@ -125,28 +120,29 @@ struct Prefixes::Opaque {
 
     /**/
 
-    void Add(BitIp * closest, int ip, int bit_min) {
+    void Add(BitIp* closest, int ip, int bit_min) {
         for (int bit = closest->bit_ - 1; bit >= bit_min; bit--) {
             if (0 == (ip & (1 << bit))) {
                 closest->false_ = new BitIp(bit, false, closest);
-                closest         = closest->false_;
+                closest = closest->false_;
                 continue;
             }
             closest->true_ = new BitIp(bit, false, closest);
-            closest        = closest->true_;
+            closest = closest->true_;
         }
         closest->added_ = true;
     }
 
     /**/
 
-    void Delete(BitIp * closest, int bit_min) {
+    void Delete(BitIp* closest, int bit_min) {
         if (closest->bit_ > bit_min) {
             return;
         }
         closest->added_ = false;
-        while (0 != closest->up_ && !closest->added_ && 0 == closest->true_ && 0 == closest->false_) {
-            BitIp * up = closest->up_;
+        while (0 != closest->up_ && !closest->added_ && 0 == closest->true_ &&
+               0 == closest->false_) {
+            BitIp* up = closest->up_;
             if (up->true_ == closest) {
                 up->true_ = 0;
             } else {
@@ -159,7 +155,7 @@ struct Prefixes::Opaque {
 
     /**/
 
-    BitIp * Find(BitIp * closest) {
+    BitIp* Find(BitIp* closest) {
         while (0 != closest && !closest->added_) {
             closest = closest->up_;
         }
@@ -168,7 +164,7 @@ struct Prefixes::Opaque {
 
     /**/
 
-    char Mask(BitIp * bit_ip) {
+    char Mask(BitIp* bit_ip) {
         if (0 == bit_ip) {
             return kMaskNotFound;
         }
@@ -176,18 +172,15 @@ struct Prefixes::Opaque {
     }
 
     /**/
-
 };
 
 /**/
 
-Prefixes::Prefixes() : opaque_(new Opaque) { }
+Prefixes::Prefixes() : opaque_(new Opaque) {}
 
 /**/
 
-Prefixes::~Prefixes() {
-    delete opaque_;
-}
+Prefixes::~Prefixes() { delete opaque_; }
 
 /**/
 
@@ -206,7 +199,8 @@ void Prefixes::Del(int ip, char mask) {
 /**/
 
 char Prefixes::Check(int ip) {
-    return opaque_->Mask(opaque_->Find(opaque_->Closest(ip, opaque_->BitMin(32))));
+    return opaque_->Mask(
+        opaque_->Find(opaque_->Closest(ip, opaque_->BitMin(32))));
 }
 
 /**/
