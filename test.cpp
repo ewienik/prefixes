@@ -23,13 +23,13 @@ namespace {
 /**/
 
 string test_title;
-int test_count;
-int test_failed;
+int test_count{};
+int test_failed{};
 
 /**/
 
-void TestStarted(string title) {
-    test_title = title;
+void TestStarted(char const* title) {
+    test_title = string(title);
     test_count = 0;
     test_failed = 0;
     cout << "STARTED: " << test_title << endl;
@@ -44,15 +44,15 @@ void TestFinished() {
 
 /**/
 
-void TestMessage(string msg) {
+void TestMessage(string const& msg) {
     cout << "MESSAGE: " << test_title << " " << msg << endl;
 }
 
 /**/
 
-void Test(Prefixes& prefixes, int ip, char expected) {
+void Test(Prefixes& prefixes, int ip, int expected) {
     test_count++;
-    char result = prefixes.Check(ip);
+    int result = prefixes.Check(ip);
     if (result != expected) {
         test_failed++;
         cout << "FAILED: " << test_title << ": " << setw(8) << setfill('0')
@@ -65,24 +65,24 @@ void Test(Prefixes& prefixes, int ip, char expected) {
 /**/
 
 void TestMem() {
-    TestStarted(__FUNCTION__);
+    TestStarted(static_cast<char const*>(__FUNCTION__));
 
     Mem<int, 2> mem;
 
     int* first = static_cast<int*>(mem.Malloc());
-    if (0 == first) {
+    if (nullptr == first) {
         cout << "FAILED: " << test_title
              << ": allocation of first int should be != NULL" << endl;
     }
     int* second = static_cast<int*>(mem.Malloc());
-    if (0 == second) {
+    if (nullptr == second) {
         cout << "FAILED: " << test_title
              << ": allocation of second int should be != NULL" << endl;
     }
 
     mem.Free(second);
     int* third = static_cast<int*>(mem.Malloc());
-    if (0 == third) {
+    if (nullptr == third) {
         cout << "FAILED: " << test_title
              << ": allocation of third int should be != NULL" << endl;
     }
@@ -91,9 +91,10 @@ void TestMem() {
              << ": allocation of third int should be as second" << endl;
     }
 
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
     mem.Free(reinterpret_cast<char*>(second) + 1);
     int* fourth = static_cast<int*>(mem.Malloc());
-    if (0 == fourth) {
+    if (nullptr == fourth) {
         cout << "FAILED: " << test_title
              << ": allocation of fourth int should be != NULL" << endl;
     }
@@ -106,7 +107,7 @@ void TestMem() {
 }
 
 void Test1() {
-    TestStarted(__FUNCTION__);
+    TestStarted(static_cast<char const*>(__FUNCTION__));
 
     Prefixes prefixes;
 
@@ -152,12 +153,14 @@ void Test1() {
 
 /**/
 
-int Ip(int i, int j, int k, int l) { return i << 24 | j << 16 | k << 8 | l; }
+auto Ip(int i, int j, int k, int l) -> int {
+    return i << 24 | j << 16 | k << 8 | l;
+}
 
 /**/
 
 void Test2() {
-    TestStarted(__FUNCTION__);
+    TestStarted(static_cast<char const*>(__FUNCTION__));
 
     Prefixes prefixes;
 
@@ -222,7 +225,7 @@ void Test2() {
 
 /**/
 
-int main() {
+auto main() -> int {
     TestMem();
     Test1();
     Test2();

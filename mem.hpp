@@ -28,26 +28,26 @@ struct Mem {
     void *Malloc() {
         if (queue_.empty()) {
             arrays_.push_back(new char[N * sizeof(T)]);
-            int multi = (arrays_.size() - 1) * N;
-            for (int i = multi; i < multi + N; i++) {
+            auto multi = (arrays_.size() - 1) * N;
+            for (auto i = multi; i < multi + N; i++) {
                 queue_.push(i);
             }
         }
-        int i = queue_.front();
+        auto i = queue_.front();
         queue_.pop();
-        int array_no = i / N;
-        int item_no = i % N;
+        auto array_no = i / N;
+        auto item_no = i % N;
         return arrays_[array_no] + item_no * sizeof(T);
     }
 
     /**/
 
     void Free(void *ptr) {
-        char *ptr_char = static_cast<char *>(ptr);
+        auto ptr_char = static_cast<char *>(ptr);
         for (std::vector<char *>::const_iterator it = arrays_.begin();
              it != arrays_.end(); it++) {
             if (*it <= ptr_char && *it + N * sizeof(T) > ptr_char) {
-                int offset = ptr_char - *it;
+                auto offset = ptr_char - *it;
                 if (0 != offset % sizeof(T)) {
                     return;
                 }

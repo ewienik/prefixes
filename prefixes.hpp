@@ -3,7 +3,7 @@
 
 /**/
 
-char const kMaskNotFound = -1;
+int const kMaskNotFound = -1;
 
 /**/
 
@@ -15,9 +15,9 @@ struct Prefixes {
 
     /**/
 
-    void Add(int ip, char mask);
-    void Del(int ip, char mask);
-    char Check(int ip);
+    void Add(int ip, int mask);
+    void Del(int ip, int mask);
+    int Check(int ip);
 
     /**/
 
