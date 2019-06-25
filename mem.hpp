@@ -12,22 +12,30 @@ template <typename T, std::size_t N>
 struct Mem {
     /**/
 
-    Mem() {}
+    Mem() = default;
 
     /**/
 
     ~Mem() {
-        for (std::vector<char *>::const_iterator it = arrays_.begin();
-             it != arrays_.end(); it++) {
-            delete[] * it;
+        for (auto it = arrays_.begin(); it != arrays_.end(); it++) {
+            delete[] * it;  // NOLINT(cppcoreguidelines-owning-memory)
         }
     }
 
     /**/
 
-    void *Malloc() {
+    Mem(Mem const &) = delete;
+    void operator=(Mem const &) = delete;
+    Mem(Mem &&) = delete;
+    void operator=(Mem &&) = delete;
+
+    /**/
+
+    auto Malloc() -> void * {
         if (queue_.empty()) {
+            // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
             arrays_.push_back(new char[N * sizeof(T)]);
+
             auto multi = (arrays_.size() - 1) * N;
             for (auto i = multi; i < multi + N; i++) {
                 queue_.push(i);
@@ -44,8 +52,7 @@ struct Mem {
 
     void Free(void *ptr) {
         auto ptr_char = static_cast<char *>(ptr);
-        for (std::vector<char *>::const_iterator it = arrays_.begin();
-             it != arrays_.end(); it++) {
+        for (auto it = arrays_.begin(); it != arrays_.end(); it++) {
             if (*it <= ptr_char && *it + N * sizeof(T) > ptr_char) {
                 auto offset = ptr_char - *it;
                 if (0 != offset % sizeof(T)) {
@@ -61,9 +68,6 @@ struct Mem {
 
    private:
     /**/
-
-    Mem(Mem const &);
-    void operator=(Mem const &);
 
     /**/
 

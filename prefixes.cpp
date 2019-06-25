@@ -176,7 +176,7 @@ Prefixes::Prefixes() : opaque_(new Opaque) {}
 
 /**/
 
-Prefixes::~Prefixes() { delete opaque_; }
+Prefixes::~Prefixes() = default;
 
 /**/
 

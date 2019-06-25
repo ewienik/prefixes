@@ -3,6 +3,10 @@
 
 /**/
 
+#include <memory>
+
+/**/
+
 int const kMaskNotFound = -1;
 
 /**/
@@ -13,11 +17,16 @@ struct Prefixes {
     Prefixes();
     ~Prefixes();
 
+    Prefixes(Prefixes const &) = delete;
+    void operator=(Prefixes const &) = delete;
+    Prefixes(Prefixes &&) = delete;
+    void operator=(Prefixes &&) = delete;
+
     /**/
 
     void Add(int ip, int mask);
     void Del(int ip, int mask);
-    int Check(int ip);
+    auto Check(int ip) -> int;
 
     /**/
 
@@ -25,7 +34,7 @@ struct Prefixes {
     /**/
 
     struct Opaque;
-    Opaque* opaque_;
+    std::unique_ptr<Opaque> opaque_;
 
     /**/
 };
