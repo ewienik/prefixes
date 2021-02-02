@@ -1,0 +1,7 @@
+---
+Checks:          '-*,bugprone*,clang*,cppcoreguidelines*,misc*,modernize*,-modernize-use-trailing-return-type,performance*,portability*,readability*,-*magic-numbers'
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+...
+
